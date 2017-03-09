@@ -10,7 +10,10 @@ Plugin 'tpope/vim-fugitive'
 Plugin 'airblade/vim-gitgutter'
 Plugin 'vim-scripts/Align'
 Plugin 'tpope/vim-surround'
-
+Plugin 'ctrlpvim/ctrlp.vim'
+Plugin 'bogado/file-line'
+Plugin 'fatih/vim-go'
+Plugin 'Shougo/neocomplete'
 
 call vundle#end()            " required
 " }}}
@@ -26,6 +29,17 @@ let g:airline_powerline_fonts = 1 "change 0 to 1 if you have a powerline font
 set laststatus=2
 set t_Co=256
 " }}}
+"
+"
+" Neocomplete {{{
+let g:neocomplete#enable_at_startup = 1
+let g:go_highlight_functions = 1
+let g:go_highlight_methods = 1
+let g:go_highlight_fields = 1
+let g:go_highlight_types = 1
+let g:go_highlight_operators = 1
+let g:go_highlight_build_constraints = 1
+"˘}}}
 
 " NERDTree {{{
 let g:NERDTreeMapChangeRoot =  "`"
@@ -115,7 +129,10 @@ noremap <Left> <NOP>
 noremap <Right> <NOP>
 
 " So we don't have to reach for escape to leave insert mode.
-inoremap jj <esc>
+inoremap jk <ESC>
+
+" Use space as leader
+let mapleader = "\<Space>"
 
 " Use sane regex's when searching
 nnoremap / /\v
