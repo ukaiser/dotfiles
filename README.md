@@ -28,6 +28,11 @@ config config --local status.showUntrackedFiles no
 ```
 git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 ```
+To install plugins start vim and type
+```
+:PluginInstall
+```
+
 
 
 
