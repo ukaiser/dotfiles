@@ -16,13 +16,21 @@ Plugin 'fatih/vim-go'
 Plugin 'editorconfig/editorconfig-vim'
 Plugin 'vim-scripts/indentpython.vim'
 Plugin 'junegunn/fzf'
-
+Plugin 'edkolev/promptline.vim'
+Plugin 'rust-lang/rust.vim'
+Plugin 'vim-syntastic/syntastic'
+Plugin 'vim-scripts/DoxygenToolkit.vim'
+Plugin 'vivien/vim-linux-coding-style'
 call vundle#end()            " required
 " }}}
 
 " Plugin Settings {{{
 let g:windowswap_map_keys = 0 "prevent default bindings
 let g:ctrlp_custom_ignore = 'node_modules\|DS_Store\|git'
+" }}}
+
+" Vim Linux Coding Style {{{
+let g:linuxsty_patterns = [ "/linux/", "/kernel/" ]
 " }}}
 
 " Airline {{{
@@ -40,7 +48,7 @@ autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in
 let g:NERDTreeMapChangeRoot =  "`"
 
 map <C-n> :NERDTreeToggle<CR>
-nnoremap <Space>c :NERDTreeCWD<CR>
+nnoremap <leader>c :NERDTreeCWD<CR>
 let NERDTreeMinimalUI=1
 let NERDTreeDirArrows=0
 let NERDTreeQuitOnOpen = 1
@@ -79,8 +87,19 @@ function! Formatonsave()
   let l:formatdiff = 1
   py3f /usr/share/vim/addons/syntax/clang-format-4.0.py
 endfunction
-autocmd BufWritePre *.h,*.cc,*.cpp call Formatonsave()
+"autocmd BufWritePre *.h,*.cc,*.cpp call Formatonsave()
+map <C-K> :py3f /usr/share/vim/addons/syntax/clang-format-4.0.py<CR>
+imap <C-K> <c-o>:py3f /usr/share/vim/addons/syntax/clang-format-4.0.py<CR>
 "  }}}
+
+" FZF {{{
+" Mapping selecting mappings
+nmap <C-P> :FZF<CR>
+nmap <leader><tab> <plug>(fzf-maps-n)
+xmap <leader><tab> <plug>(fzf-maps-x)
+omap <leader><tab> <plug>(fzf-maps-o)
+" }}}
+
 
 " General {{{
 
@@ -120,6 +139,7 @@ set nobackup
 set number
 set linespace=3
 set hidden
+set colorcolumn=+1,+2,+3  " highlight three columns after 'textwidth'
 
 " Autoreload changed files
 set autoread
@@ -164,6 +184,19 @@ nmap <silent> ,sv :so $MYVIMRC<cr>
 "Paste mode toggle
 set pastetoggle=<F5><F5>
 
+"map <C-S-B> :make<CR>
+nmap <leader>O O<ESC>
+nmap <leader>o o<ESC>
 
+nnoremap <leader>gl :YcmCompleter GoToDeclaration<CR>
+nnoremap <leader>gf :YcmCompleter GoToDefinition<CR>
+nnoremap <leader>gg :YcmCompleter GoToDefinitionElseDeclaration<CR>
 " }}}
+"
+"
+"
+"
+set exrc
+set secure
+
 
