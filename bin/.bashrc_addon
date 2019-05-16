@@ -1,0 +1,38 @@
+if [ -f ~/.proxy_config ]; then
+    . ~/.proxy_config
+fi
+
+export PATH=$PATH:$HOME/bin
+
+function _update_ps1() {
+    PS1="$(~/bin/powerline-go -newline -error $?)"
+}
+
+# Consistent and forever bash history
+HISTSIZE=100000
+HISTFILESIZE=$HISTSIZE
+HISTCONTROL=ignorespace:ignoredups
+
+_bash_history_sync() {
+  builtin history -a         #1
+  HISTFILESIZE=$HISTSIZE     #2
+}
+
+_bash_history_sync_and_reload() {
+  builtin history -a         #1
+  HISTFILESIZE=$HISTSIZE     #2
+  builtin history -c         #3
+  builtin history -r         #4
+}
+
+history() {                  #5
+  _bash_history_sync_and_reload
+  builtin history "$@"
+}
+
+export HISTTIMEFORMAT="%y/%m/%d %H:%M:%S   "
+if [ "$TERM" != "linux" ]; then
+    PROMPT_COMMAND='history 1 >> ${HOME}/.bash_eternal_history'
+    PROMPT_COMMAND="_update_ps1; _bash_history_sync; $PROMPT_COMMAND"
+fi
+
