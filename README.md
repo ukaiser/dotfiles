@@ -10,11 +10,6 @@ config checkout
 config config --local status.showUntrackedFiles no
 ```
 
-## Run setup
-
-~/bin/setup
-
-
 
 
 
