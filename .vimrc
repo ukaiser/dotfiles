@@ -22,23 +22,12 @@ Plugin 'vim-scripts/DoxygenToolkit.vim'
 Plugin 'vivien/vim-linux-coding-style'
 Plugin 'octol/vim-cpp-enhanced-highlight'
 Plugin 'joshdick/onedark.vim'
-Plugin 'prabirshrestha/asyncomplete.vim'
-Plugin 'prabirshrestha/async.vim'
-Plugin 'prabirshrestha/vim-lsp'
-Plugin 'prabirshrestha/asyncomplete-lsp.vim'
+Plugin 'tpope/vim-dispatch'
+Plugin 'Valloric/YouCompleteMe'
+Plugin 'peterhoeg/vim-qml'
 call vundle#end()            " required
 " }}}
 "
-let g:lsp_log_verbose = 1
-let g:lsp_log_file = expand('~/vim-lsp.log')
-
-if executable('clangd')
-      au User lsp_setup call lsp#register_server({
-              \ 'name': 'clangd',
-              \ 'cmd': {server_info->['clangd']},
-              \ 'whitelist': ['c', 'cpp', 'objc', 'objcpp'],
-              \ })
-endif
 
 inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
@@ -106,11 +95,11 @@ autocmd WinEnter * call NERDTreeQuit()
 " Clang-Format {{{
 function! Formatonsave()
   let l:formatdiff = 1
-  py3f /usr/share/vim/addons/syntax/clang-format-7.py
+  py3f /usr/share/vim/addons/syntax/clang-format-8.py
 endfunction
 autocmd BufWritePre *.h,*.hpp,*.cc,*.cpp call Formatonsave()
-map <C-K> :py3f /usr/share/vim/addons/syntax/clang-format-7.py<CR>
-imap <C-K> <c-o>:py3f /usr/share/vim/addons/syntax/clang-format-7.py<CR>
+map <C-K> :py3f /usr/share/vim/addons/syntax/clang-format-9.py<CR>
+imap <C-K> <c-o>:py3f /usr/share/vim/addons/syntax/clang-format-9.py<CR>
 "  }}}
 
 " FZF {{{
@@ -162,6 +151,7 @@ set number
 set linespace=3
 set hidden
 set colorcolumn=+1,+2,+3  " highlight three columns after 'textwidth'
+set clipboard=unnamedplus
 
 " Autoreload changed files
 set autoread
@@ -178,7 +168,10 @@ noremap <Up> <NOP>
 noremap <Down> <NOP>
 noremap <Left> <NOP>
 noremap <Right> <NOP>
-
+inoremap <Up> <nop>
+inoremap <Down> <nop>
+inoremap <Left> <nop>
+inoremap <Right> <nop>
 " So we don't have to reach for escape to leave insert mode.
 inoremap jk <ESC>
 
@@ -206,14 +199,13 @@ nmap <silent> ,sv :so $MYVIMRC<cr>
 "Paste mode toggle
 set pastetoggle=<F5><F5>
 
-"map <C-S-B> :make<CR>
+map <C-S-B> :Make <cr>
 nmap <leader>O O<ESC>
 nmap <leader>o o<ESC>
-
-nnoremap <leader>gl :YcmCompleter GoToDeclaration<CR>
-nnoremap <leader>gf :YcmCompleter GoToDefinition<CR>
-nnoremap <leader>gg :YcmCompleter GoToDefinitionElseDeclaration<CR>
 " }}}
+
+"display the buffer list and promt you for a number
+map <leader>b :ls<CR>:b
 "
 "
 "
