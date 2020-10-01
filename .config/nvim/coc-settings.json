@@ -1,0 +1,11 @@
+{
+    "coc.preferences.formatOnSaveFiletypes": ["cpp"],
+    "clangd.arguments": [
+      "--suggest-missing-includes",
+      "--background-index",
+      "--clang-tidy",
+      "--cross-file-rename",
+      "--completion-style=detailed"
+    ]
+
+}
