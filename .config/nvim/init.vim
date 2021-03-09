@@ -3,8 +3,6 @@ call plug#begin(expand('$HOME/.config/nvim/plugged'))
 
 
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
-"Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
-"Plug 'junegunn/fzf.vim'
 Plug 'joshdick/onedark.vim'
 Plug 'arcticicestudio/nord-vim'
 Plug 'vim-airline/vim-airline'
@@ -123,27 +121,6 @@ let g:airline_theme='nord'
 "
 let g:nord_comment_brightness = 12
 
-
-" FZF {{{
-" Mapping selecting mappings
-" Use RG for grepping
-
-if executable('rg')
-  let g:rg_derive_root='true'
-endif
-
-nmap <C-P> :FZF<CR>
-nmap <C-P> :Files<CR>
-nmap <leader><tab> <plug>(fzf-maps-n)
-xmap <leader><tab> <plug>(fzf-maps-x)
-omap <leader><tab> <plug>(fzf-maps-o)
-nnoremap <silent> <Leader>b :Buffers<cr>
-"always only search file content
-command! -bang -nargs=* Rg call fzf#vim#grep("rg --column --line-number --no-heading --color=always --smart-case ".shellescape(<q-args>), 1, {'options': '--delimiter : --nth 4..'}, <bang>0)
-nnoremap \ :Rg<CR>
-"search current word
-nnoremap <silent> <Leader>rg :Rg <C-R><C-W><CR>
-" }}}
 
 " delimitmate {{{
 "
