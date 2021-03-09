@@ -3,9 +3,10 @@ call plug#begin(expand('$HOME/.config/nvim/plugged'))
 
 
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
-Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
-Plug 'junegunn/fzf.vim'
+"Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+"Plug 'junegunn/fzf.vim'
 Plug 'joshdick/onedark.vim'
+Plug 'arcticicestudio/nord-vim'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'preservim/nerdtree'
@@ -13,16 +14,20 @@ Plug 'airblade/vim-gitgutter'
 Plug 'ryanoasis/vim-devicons'
 Plug 'tpope/vim-fugitive'
 Plug 'peterhoeg/vim-qml'
-Plug 'benmills/vimux'
-Plug 'ukaiser/vimux-cmake'
-Plug 'francoiscabrol/ranger.vim'
-Plug 'rbgrouleff/bclose.vim'
 Plug 'bfrg/vim-cpp-modern'
-Plug 'Raimondi/delimitMate'
 Plug 'tpope/vim-dispatch'
-Plug 'easymotion/vim-easymotion'
+Plug 'tpope/vim-surround'
+Plug 'raimondi/delimitmate'
+Plug 'vimwiki/vimwiki'
+
+Plug 'nvim-lua/popup.nvim'
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
+Plug 'nvim-telescope/telescope-fzy-native.nvim'
 " Initialize plugin system
 call plug#end()
+
+
 
 
 " General {{{
@@ -30,7 +35,7 @@ set number
 set relativenumber
 
 syntax enable                           " Enables syntax highlighing
-colorscheme onedark
+colorscheme nord
 set nowrap                              " display long lines as just one line
 set encoding=utf-8                      " The encoding displayed 
 set fileencoding=utf-8                  " The encoding written to file
@@ -50,6 +55,7 @@ set laststatus=0                        " Always display the status line
 set cursorline                          " Enable highlighting of the current line
 set background=dark                     " tell vim what the background color looks like
 set colorcolumn=80
+set signcolumn=yes
 
 filetype plugin indent on               " Gives vim abilty to recognize filetypes
 
@@ -96,23 +102,11 @@ nnoremap <leader>bb :buffers<cr>:b<space>
 nnoremap <leader><tab> :b#<cr>
 
 " close al buffers but the current
-nnoremap <leader>ca :w\|%bd\|e#\|bd#\|'"
+nnoremap <leader>ca :w\|%bd\|e#\|bd#\|'"<CR>
 " }}}
 
-" Vimux {{{
-" Run  CMakeInstall
-map <C-S-B> :wa<CR>:CMakeBuildInstall<CR>
-map <C-F9> :wa<CR>:CMakeBuild<CR>
-
- " Run the current file with rspec
- map <Leader>ge :call VimuxRunCommand("clear; ninja -C build-gemmi install")<CR>
-
- " Prompt for a command to run
- map <Leader>vp :VimuxPromptCommand<CR>
-
- " Run last command executed by VimuxRunCommand
- map <Leader>vl :VimuxRunLastCommand<CR>
-"}}}
+let &makeprg = 'ninja -C build install'
+map <C-B> :wa<CR>:Make<CR>
 
 
 " NERDTree {{{
@@ -123,28 +117,52 @@ map <C-n> :NERDTreeToggle<CR>
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#buffer_nr_show = 1
 let g:airline_powerline_fonts = 1
-let g:airline_theme='onedark'
+let g:airline_theme='nord'
 " }}}
+"
+"
+let g:nord_comment_brightness = 12
 
 
 " FZF {{{
 " Mapping selecting mappings
+" Use RG for grepping
+
+if executable('rg')
+  let g:rg_derive_root='true'
+endif
+
 nmap <C-P> :FZF<CR>
+nmap <C-P> :Files<CR>
 nmap <leader><tab> <plug>(fzf-maps-n)
 xmap <leader><tab> <plug>(fzf-maps-x)
 omap <leader><tab> <plug>(fzf-maps-o)
+nnoremap <silent> <Leader>b :Buffers<cr>
+"always only search file content
+command! -bang -nargs=* Rg call fzf#vim#grep("rg --column --line-number --no-heading --color=always --smart-case ".shellescape(<q-args>), 1, {'options': '--delimiter : --nth 4..'}, <bang>0)
+nnoremap \ :Rg<CR>
+"search current word
+nnoremap <silent> <Leader>rg :Rg <C-R><C-W><CR>
 " }}}
 
-" easymotion {{{
-map <Leader>w <Plug>(easymotion-w)
-map <Leader>l <Plug>(easymotion-lineforward)
-map <Leader>j <Plug>(easymotion-j)
-map <Leader>k <Plug>(easymotion-k)
-map <Leader>h <Plug>(easymotion-linebackward)
+" delimitmate {{{
+"
+let delimitMate_balance_matchpairs = 1
+"Handled with completer
+"let delimitMate_expand_cr = 1
 " }}}
+
+
+" VIMWIKI {{{
+let g:vimwiki_list = [{'path': '/mnt/hgfs/Data/nextcloud/vimwiki',
+                      \ 'syntax': 'markdown', 'ext': '.md'}]
+
+" }}}
+
 
 
 " COC {{{
+
 " TextEdit might fail if hidden is not set.
 set hidden
 
@@ -164,7 +182,12 @@ set shortmess+=c
 
 " Always show the signcolumn, otherwise it would shift the text each time
 " diagnostics appear/become resolved.
-set signcolumn=yes
+if has("patch-8.1.1564")
+  " Recently vim can merge signcolumn and number column into one
+  set signcolumn=number
+else
+  set signcolumn=yes
+endif
 
 " Use tab for trigger completion with characters ahead and navigate.
 " NOTE: Use command ':verbose imap <tab>' to make sure tab is not mapped by
@@ -181,19 +204,21 @@ function! s:check_back_space() abort
 endfunction
 
 " Use <c-space> to trigger completion.
-inoremap <silent><expr> <c-space> coc#refresh()
-
-" Use <cr> to confirm completion, `<C-g>u` means break undo chain at current
-" position. Coc only does snippet and additional edit on confirm.
-if exists('*complete_info')
-  "inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "<C-y>" : "<C-g>u<CR>"
-  inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "<C-y>" : "<CR>"
+if has('nvim')
+  inoremap <silent><expr> <c-space> coc#refresh()
 else
-  "imap <expr> <cr> pumvisible() ? "<C-y>" : "<C-g>u<CR>"
-  imap <expr> <cr> pumvisible() ? "<C-y>" : "<CR>"
+  inoremap <silent><expr> <c-@> coc#refresh()
 endif
 
+" Make <CR> auto-select the first completion item and notify coc.nvim to
+" format on enter, <cr> could be remapped by other vim plugin
+"inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm()
+"                              \: "\<C-g>u\<Plug>delimitMateCR\<c-r>=coc#on_enter()\<CR>"
+inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm()
+                              \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+
 " Use `[g` and `]g` to navigate diagnostics
+" Use `:CocDiagnostics` to get all diagnostics of current buffer in location list.
 nmap <silent> [g <Plug>(coc-diagnostic-prev)
 nmap <silent> ]g <Plug>(coc-diagnostic-next)
 
@@ -210,8 +235,10 @@ nnoremap <silent> K :call <SID>show_documentation()<CR>
 function! s:show_documentation()
   if (index(['vim','help'], &filetype) >= 0)
     execute 'h '.expand('<cword>')
+  elseif (coc#rpc#ready())
+    call CocActionAsync('doHover')
   else
-    call CocAction('doHover')
+    execute '!' . &keywordprg . " " . expand('<cword>')
   endif
 endfunction
 
@@ -238,23 +265,32 @@ augroup end
 xmap <leader>a  <Plug>(coc-codeaction-selected)
 nmap <leader>a  <Plug>(coc-codeaction-selected)
 
-" Remap keys for applying codeAction to the current line.
+" Remap keys for applying codeAction to the current buffer.
 nmap <leader>ac  <Plug>(coc-codeaction)
 " Apply AutoFix to problem on the current line.
 nmap <leader>qf  <Plug>(coc-fix-current)
 
-" Introduce function text object
+" Map function and class text objects
 " NOTE: Requires 'textDocument.documentSymbol' support from the language server.
 xmap if <Plug>(coc-funcobj-i)
-xmap af <Plug>(coc-funcobj-a)
 omap if <Plug>(coc-funcobj-i)
+xmap af <Plug>(coc-funcobj-a)
 omap af <Plug>(coc-funcobj-a)
+xmap ic <Plug>(coc-classobj-i)
+omap ic <Plug>(coc-classobj-i)
+xmap ac <Plug>(coc-classobj-a)
+omap ac <Plug>(coc-classobj-a)
 
-" Use <TAB> for selections ranges.
-" NOTE: Requires 'textDocument/selectionRange' support from the language server.
-" coc-tsserver, coc-python are the examples of servers that support it.
-nmap <silent> <TAB> <Plug>(coc-range-select)
-xmap <silent> <TAB> <Plug>(coc-range-select)
+" Remap <C-f> and <C-b> for scroll float windows/popups.
+"nnoremap <expr><C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
+"nnoremap <expr><C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
+"inoremap <expr><C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<Right>"
+"inoremap <expr><C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<Left>"
+
+" Us CTRL-S for selections ranges.
+" Requires 'textDocument/selectionRange' support of language server.
+nmap <silent> <C-s> <Plug>(coc-range-select)
+xmap <silent> <C-s> <Plug>(coc-range-select)
 
 " Add `:Format` command to format current buffer.
 command! -nargs=0 Format :call CocAction('format')
@@ -270,21 +306,21 @@ command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organize
 " provide custom statusline: lightline.vim, vim-airline.
 set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
 
-" Mappings using CoCList:
+" Mappings for CoCList
 " Show all diagnostics.
-nnoremap <silent> <space>a  :<C-u>CocList diagnostics<cr>
+nnoremap <silent><nowait> <space>a  :<C-u>CocList diagnostics<cr>
 " Manage extensions.
-nnoremap <silent> <space>e  :<C-u>CocList extensions<cr>
+nnoremap <silent><nowait> <space>e  :<C-u>CocList extensions<cr>
 " Show commands.
-nnoremap <silent> <space>c  :<C-u>CocList commands<cr>
+" nnoremap <silent><nowait> <space>c  :<C-u>CocList commands<cr>
 " Find symbol of current document.
-nnoremap <silent> <space>o  :<C-u>CocList outline<cr>
+nnoremap <silent><nowait> <space>o  :<C-u>CocList outline<cr>
 " Search workspace symbols.
-nnoremap <silent> <space>s  :<C-u>CocList -I symbols<cr>
+nnoremap <silent><nowait> <space>s  :<C-u>CocList -I symbols<cr>
 " Do default action for next item.
-"nnoremap <silent> <space>j  :<C-u>CocNext<CR>
+nnoremap <silent><nowait> <space>j  :<C-u>CocNext<CR>
 " Do default action for previous item.
-"nnoremap <silent> <space>k  :<C-u>CocPrev<CR>
+nnoremap <silent><nowait> <space>k  :<C-u>CocPrev<CR>
 " Resume latest coc list.
-nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
-" }}}
+nnoremap <silent><nowait> <space>p  :<C-u>CocListResume<CR>e
+"}}}
