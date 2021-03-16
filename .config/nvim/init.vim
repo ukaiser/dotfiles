@@ -1,15 +1,15 @@
 call plug#begin(expand('$HOME/.config/nvim/plugged'))
 
 
-
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
-Plug 'joshdick/onedark.vim'
 Plug 'arcticicestudio/nord-vim'
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
+
+Plug 'glepnir/galaxyline.nvim' , {'branch': 'main'}
+Plug 'kyazdani42/nvim-web-devicons'
+Plug 'akinsho/nvim-bufferline.lua'
+
 Plug 'preservim/nerdtree'
 Plug 'airblade/vim-gitgutter'
-Plug 'ryanoasis/vim-devicons'
 Plug 'tpope/vim-fugitive'
 Plug 'peterhoeg/vim-qml'
 Plug 'bfrg/vim-cpp-modern'
@@ -25,6 +25,11 @@ Plug 'nvim-telescope/telescope-fzy-native.nvim'
 " Initialize plugin system
 call plug#end()
 
+
+
+lua require("galaxyline.lua")
+lua require("nvim-web-devicons.lua")
+lua require("nvim-bufferline.lua")
 
 
 
@@ -49,7 +54,7 @@ set smarttab                            " Makes tabbing smarter will realize you
 set expandtab                           " Converts tabs to spaces
 set smartindent                         " Makes indenting smart
 set autoindent                          " Good auto indent
-set laststatus=0                        " Always display the status line
+"set laststatus=0                        " Always display the status line
 set cursorline                          " Enable highlighting of the current line
 set background=dark                     " tell vim what the background color looks like
 set colorcolumn=80
