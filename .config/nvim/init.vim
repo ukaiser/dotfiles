@@ -1,9 +1,19 @@
+
 call plug#begin(expand('$HOME/.config/nvim/plugged'))
+Plug 'neovim/nvim-lspconfig'
+Plug 'hrsh7th/cmp-nvim-lsp'
+Plug 'hrsh7th/cmp-buffer'
+Plug 'hrsh7th/nvim-cmp'
 
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
+Plug 'nvim-telescope/telescope-fzy-native.nvim'
 
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
-Plug 'arcticicestudio/nord-vim'
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 
+"Plug 'neoclide/coc.nvim', {'branch': 'release'}
+
+Plug 'folke/tokyonight.nvim', { 'branch': 'main' }
 Plug 'glepnir/galaxyline.nvim' , {'branch': 'main'}
 Plug 'kyazdani42/nvim-web-devicons'
 Plug 'akinsho/nvim-bufferline.lua'
@@ -18,18 +28,24 @@ Plug 'tpope/vim-surround'
 Plug 'raimondi/delimitmate'
 Plug 'vimwiki/vimwiki'
 
-Plug 'nvim-lua/popup.nvim'
-Plug 'nvim-lua/plenary.nvim'
-Plug 'nvim-telescope/telescope.nvim'
-Plug 'nvim-telescope/telescope-fzy-native.nvim'
+
+
 " Initialize plugin system
 call plug#end()
 
+if exists('+termguicolors')
+  let &t_8f="\<Esc>[38;2;%lu;%lu;%lum"
+  let &t_8b="\<Esc>[48;2;%lu;%lu;%lum"
+  set termguicolors
+endif
 
 
+
+lua require("lsp")
 lua require("galaxyline.lua")
 lua require("nvim-web-devicons.lua")
 lua require("nvim-bufferline.lua")
+lua require("nvim-treesitter.lua")
 
 
 
@@ -38,7 +54,7 @@ set number
 set relativenumber
 
 syntax enable                           " Enables syntax highlighing
-colorscheme nord
+colorscheme tokyonight
 set nowrap                              " display long lines as just one line
 set encoding=utf-8                      " The encoding displayed 
 set fileencoding=utf-8                  " The encoding written to file
@@ -108,7 +124,9 @@ nnoremap <leader><tab> :b#<cr>
 nnoremap <leader>ca :w\|%bd\|e#\|bd#\|'"<CR>
 " }}}
 
-let &makeprg = 'ninja -C build install'
+"let &makeprg = 'ninja -C build install'
+autocmd Filetype cpp set makeprg=ninja\ -C\ build\ install
+autocmd Filetype rust set makeprg=cargo\ build
 map <C-B> :wa<CR>:Make<CR>
 
 
@@ -161,6 +179,11 @@ set updatetime=300
 
 " Don't pass messages to |ins-completion-menu|.
 set shortmess+=c
+
+nmap <silent> ga :ClangdSwitchSourceHeader<CR>
+
+
+function! _blockcomment()
 
 " Always show the signcolumn, otherwise it would shift the text each time
 " diagnostics appear/become resolved.
@@ -306,3 +329,5 @@ nnoremap <silent><nowait> <space>k  :<C-u>CocPrev<CR>
 " Resume latest coc list.
 nnoremap <silent><nowait> <space>p  :<C-u>CocListResume<CR>e
 "}}}
+
+endfunction
