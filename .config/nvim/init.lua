@@ -20,13 +20,10 @@ require('packer').startup(function()
   use 'wbthomason/packer.nvim' -- Package manager
   use 'tpope/vim-fugitive' -- Git commands in nvim
   use 'tpope/vim-rhubarb' -- Fugitive-companion to interact with github
-  use 'tpope/vim-commentary' -- "gc" to comment visual regions/lines
   use 'tpope/vim-dispatch' -- async make
-	use 'tpope/vim-sleuth' -- This plugin automatically adjusts 'shiftwidth' and 'expandtab'
-  use 'ludovicchabant/vim-gutentags' -- Automatic tags management
+  use 'tpope/vim-sleuth' -- This plugin automatically adjusts 'shiftwidth' and 'expandtab'
   -- UI to select things (files, grep results, open buffers...)
   use { 'nvim-telescope/telescope.nvim', requires = { 'nvim-lua/plenary.nvim' } }
-  use 'folke/tokyonight.nvim'
   use 'itchyny/lightline.vim' -- Fancier statusline
   use 'kyazdani42/nvim-web-devicons'
   use 'akinsho/nvim-bufferline.lua'
@@ -43,6 +40,11 @@ require('packer').startup(function()
   use 'hrsh7th/cmp-nvim-lsp'
   use 'saadparwaiz1/cmp_luasnip'
   use 'L3MON4D3/LuaSnip' -- Snippets plugin
+  use 'numToStr/Comment.nvim'
+
+  use 'peterhoeg/vim-qml'
+  use 'folke/trouble.nvim'
+  use 'dracula/vim'
 end)
 
 --Incremental live completion (note: this is now a default on master)
@@ -53,6 +55,7 @@ vim.o.hlsearch = false
 
 --Make line numbers default
 vim.wo.number = true
+vim.wo.relativenumber = true
 
 --Do not save when switching buffers (note: this is now a default on master)
 vim.o.hidden = true
@@ -70,6 +73,9 @@ vim.opt.undofile = true
 vim.o.ignorecase = true
 vim.o.smartcase = true
 
+-- Enable autoread
+vim.o.autoread = true
+
 --Decrease update time
 vim.o.updatetime = 250
 vim.wo.signcolumn = 'yes'
@@ -78,11 +84,11 @@ vim.o.colorcolumn = '80'
 
 --Set colorscheme (order is important here)
 vim.o.termguicolors = true
-vim.cmd [[colorscheme tokyonight]]
+vim.cmd [[colorscheme dracula]]
 
 --Set statusbar
 vim.g.lightline = {
-  colorscheme = 'tokyonight',
+  colorscheme = 'dracula',
   active = { left = { { 'mode', 'paste' }, { 'gitbranch', 'readonly', 'filename', 'modified' } } },
   component_function = { gitbranch = 'fugitive#head' },
 }
@@ -112,6 +118,13 @@ vim.api.nvim_exec(
 autocmd Filetype cpp set makeprg=ninja\ -C\ build\ install
 autocmd Filetype rust set makeprg=cargo\ build
 map <C-B> :wa<CR>:Make<CR>
+]],
+  false
+)
+
+vim.api.nvim_exec(
+  [[
+autocmd FocusGained,BufEnter * :checktime
 ]],
   false
 )
@@ -232,11 +245,13 @@ local on_attach = function(_, bufnr)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
   -- vim.api.nvim_buf_set_keymap(bufnr, 'v', '<leader>ca', '<cmd>lua vim.lsp.buf.range_code_action()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>e', '<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', '[d', '<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', ']d', '<cmd>lua vim.lsp.diagnostic.goto_next()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>q', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>q', '<cmd>lua vim.diagnostic.setloclist()<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', '<leader>so', [[<cmd>lua require('telescope.builtin').lsp_document_symbols()<CR>]], opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'ga', [[<cmd>:ClangdSwitchSourceHeader<CR>]], opts)
+
   vim.cmd [[ command! Format execute 'lua vim.lsp.buf.formatting()' ]]
 end
 
@@ -265,8 +280,8 @@ vim.api.nvim_command('autocmd BufWritePre *.cpp vim.lsp.buf.formatting_sync(nil,
 vim.api.nvim_command('autocmd BufWritePre *.h lua vim.lsp.buf.formatting_sync(nil, 1000)')
 
 -- Example custom server
-local sumneko_root_path = vim.fn.getenv 'HOME' .. '/.local/bin/sumneko_lua' -- Change to your sumneko root installation
-local sumneko_binary = sumneko_root_path .. '/bin/Linux/lua-language-server'
+local sumneko_root_path = vim.fn.getenv 'HOME' .. '/.local/bin/'
+local sumneko_binary = sumneko_root_path .. '/lua-language-server'
 
 -- Make runtime files discoverable to the server
 local runtime_path = vim.split(package.path, ';')
@@ -304,6 +319,12 @@ nvim_lsp.sumneko_lua.setup {
 -- Set completeopt to have a better completion experience
 vim.o.completeopt = 'menuone,noselect'
 
+
+local has_words_before = function()
+  local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+  return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
+end
+
 -- luasnip setup
 local luasnip = require 'luasnip'
 
@@ -331,6 +352,8 @@ cmp.setup {
         cmp.select_next_item()
       elseif luasnip.expand_or_jumpable() then
         luasnip.expand_or_jump()
+      elseif has_words_before() then
+        cmp.complete()
       else
         fallback()
       end
@@ -348,6 +371,10 @@ cmp.setup {
   sources = {
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
+  },
+  experimental = {
+      native_menu = false,
+      ghost_text = true,
   },
 }
 
@@ -409,3 +436,19 @@ require "bufferline".setup {
         }
     }
 }
+
+-- trouble setup
+require("trouble").setup {
+}
+
+-- Comment.nvim setup
+require('Comment').setup()
+
+-- Lua
+vim.api.nvim_set_keymap("n", "<leader>xx", "<cmd>Trouble<cr>", {silent = true, noremap = true})
+vim.api.nvim_set_keymap("n", "<leader>xw", "<cmd>Trouble lsp_workspace_diagnostics<cr>", {silent = true, noremap = true})
+vim.api.nvim_set_keymap("n", "<leader>xd", "<cmd>Trouble lsp_document_diagnostics<cr>", {silent = true, noremap = true})
+vim.api.nvim_set_keymap("n", "<leader>xl", "<cmd>Trouble loclist<cr>", {silent = true, noremap = true})
+vim.api.nvim_set_keymap("n", "<leader>xq", "<cmd>Trouble quickfix<cr>", {silent = true, noremap = true})
+vim.api.nvim_set_keymap("n", "gR", "<cmd>Trouble lsp_references<cr>", {silent = true, noremap = true})
+
