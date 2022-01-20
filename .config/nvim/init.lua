@@ -102,6 +102,12 @@ vim.g.maplocalleader = ' '
 vim.api.nvim_set_keymap('n', 'k', "v:count == 0 ? 'gk' : 'k'", { noremap = true, expr = true, silent = true })
 vim.api.nvim_set_keymap('n', 'j', "v:count == 0 ? 'gj' : 'j'", { noremap = true, expr = true, silent = true })
 
+--Move single line in normal mode or selection in visual mode
+vim.api.nvim_set_keymap('n', '<A-j>', ":<C-u>silent! move+<CR>==", { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<A-k>', ":<C-u>silent! move-2<CR>==", { noremap = true, silent = true })
+vim.api.nvim_set_keymap('v', '<A-j>', ":MoveBlock(1)<CR>", { noremap = true, silent = true })
+vim.api.nvim_set_keymap('v', '<A-k>', ":<C-u>silent! '<,'>move-2<CR>gv=gv", { noremap = true, silent = true })
+
 -- Highlight on yank
 vim.api.nvim_exec(
   [[
@@ -115,7 +121,7 @@ vim.api.nvim_exec(
 
 vim.api.nvim_exec(
   [[
-autocmd Filetype cpp set makeprg=ninja\ -C\ build\ install
+  autocmd Filetype cpp set makeprg=ninja\ -C\ build
 autocmd Filetype rust set makeprg=cargo\ build
 map <C-B> :wa<CR>:Make<CR>
 ]],
